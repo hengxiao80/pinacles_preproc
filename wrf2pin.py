@@ -92,8 +92,8 @@ pyproj_pinacles = pyproj.Proj(crsproj_pinacles)
 
 start_time = pd.to_datetime("2021-03-09 12:00")
 start_tstring = start_time.strftime("%Y-%m-%d_%H:%M:%S")
-DATES = pd.date_range("2021-03-10 00:00", "2021-03-11 00:00", freq="30T")
-# DATES = pd.date_range("2021-03-09 12:00", "2021-03-11 00:00", freq="30T")
+# DATES = pd.date_range("2021-03-10 00:00", "2021-03-11 00:00", freq="30T")
+DATES = pd.date_range("2021-03-09 12:00", "2021-03-11 00:00", freq="30T")
 
 xr.backends.file_manager.FILE_CACHE.clear()
 
@@ -190,10 +190,11 @@ for DATE in DATES:
     z = (ds.PH.values[:, :-1, :, :] + ds.PHB.values[:, 1:, :, :]) * 0.5 / g
     z_dressed = xr.DataArray(data=z, dims=["t", "z", "y", "x"], attrs={"units": "m"})
     dout["Z"] = z_dressed.isel(x=xslice, y=yslice)
-    rd = 287.0
+    rd = 287.0 # From module_model_constants.F in WRF code
     rv = 461.6
     t0 = 300.0  # K
-    t = (ds.THM.values + t0) / (1.0 + rv * ds.QV.values / rd)
+    # cp = 7.*rd/2. 
+    t = (ds.THM.values + t0) * ((p_dressed.values/1.0e5)**(2./7.)) / (1.0 + rv * ds.QV.values / rd)
     t_dressed = xr.DataArray(data=t, dims=["t", "z", "y", "x"], attrs={"units": "K"})
     dout["T"] = t_dressed.isel(x=xslice, y=yslice)
     try:
